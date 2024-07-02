@@ -1,0 +1,26 @@
+import processing.sound.*;
+
+SoundFile midiFile; 
+float circleSize; 
+
+void setup() {
+  size(800, 600); 
+  
+  // Carrega o arquivo MIDI para reprodução
+  midiFile = new SoundFile(this, "C:/Users/Vitória/Downloads/Teste.mid");
+  
+  midiFile.play();
+
+  circleSize = 50;
+}
+
+void draw() {
+  background(255); // Define o fundo como branco
+  circleSize = map(mouseY, 0, height, 50, 200);
+  fill(0, 150, 255); // Define a cor de preenchimento do círculo
+  ellipse(width/2, height/2, circleSize, circleSize); // Desenha o círculo no centro da tela
+  
+  fill(0); // Define a cor do texto para preto
+  textAlign(CENTER);
+  text("Reproduzindo arquivo MIDI", width/2, 30); // Exibe texto na parte superior da tela
+}
