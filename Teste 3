@@ -1,0 +1,31 @@
+import themidibus.*;
+
+MidiBus midiBus; // Objeto para conexão MIDI
+
+float circleSize; // Variável para o tamanho do círculo na tela
+int midiNote = 60; // Nota MIDI inicial
+int midiVelocity = 100; // Velocidade MIDI (intensidade do sopro)
+
+void setup() {
+  size(800, 600); 
+  
+  midiBus = new MidiBus(this, -1, 1); // O número -1 indica que estamos apenas recebendo MIDI
+  MidiBus.list(); // Lista os dispositivos MIDI disponíveis
+  midiBus.addOutput("Virtual MIDI Output"); // Adiciona uma saída MIDI virtual
+  midiBus.sendNoteOn(0, midiNote, midiVelocity);
+}
+
+void draw() {
+  background(255); // Limpa a tela
+  circleSize = map(midiVelocity, 0, 127, 50, 200);
+  fill(0, 150, 255); // Define a cor do círculo
+  ellipse(width/2, height/2, circleSize, circleSize); // Desenha o círculo no centro da tela
+}
+
+void controllerChange(int channel, int number, int value) {
+  if (number == 2) { // Controle de sopro (Breath Control)
+    midiVelocity = value;
+  }
+  
+  println("MIDI Control Change - Channel: " + channel + ", Number: " + number + ", Value: " + value);
+}
