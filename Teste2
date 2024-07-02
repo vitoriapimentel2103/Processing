@@ -1,0 +1,45 @@
+import processing.sound.*;
+
+Midi midi;
+int posX, posY; 
+int radius = 50; 
+int midiNote = 60;
+int midiVelocity = 100; // Velocidade MIDI (intensidade do sopro)
+
+void setup() {
+  size(800, 600);
+  
+  // Inicializa o objeto Midi
+  midi = new Midi(this);
+  
+  midiVelocity = int(map(mouseY, 0, height, 0, 127));
+  
+  // Configura a nota MIDI baseada na posição horizontal do mouse (0-800)
+  midiNote = int(map(mouseX, 0, width, 36, 84)); // Mapeia o mouse de C2 a C6
+  
+  // Abre uma saída MIDI virtual para enviar notas
+  midi.openVirtualOut();
+}
+
+void draw() {
+  background(255);
+  fill(0, 150, 255);
+  ellipse(posX, posY, radius * 2, radius * 2);
+  posX = mouseX;
+  posY = mouseY;
+}
+
+// Função para lidar com mensagens MIDI recebidas
+void controllerChange(int channel, int number, int value) {
+  if (number == 2) { // Controle de sopro (Breath Control)
+    midiVelocity = value;
+  }
+  
+  if (number == 1) {
+    midiNote = map(value, 0, 127, 36, 84);
+  }
+  
+  println("MIDI Control Change - Channel: " + channel + ", Number: " + number + ", Value: " + value);
+  
+  midi.sendNoteOn(0, midiNote, midiVelocity);
+}
