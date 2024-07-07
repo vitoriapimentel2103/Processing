@@ -1,0 +1,65 @@
+// Variáveis para controlar as ações do objeto
+float posX, posY;       // Posição
+float escala;           // Escala
+float corR, corG, corB; // Cor
+float rotacao;          // Rotação
+float diametro;         // Tamanho do objeto
+
+void setup() {
+  size(600, 400);   // Tamanho da janela
+  smooth();         // Suaviza as bordas dos objetos
+  
+  // Inicialização das variáveis
+  posX = width / 2;
+  posY = height / 2;
+  escala = 1.0;
+  corR = 255;
+  corG = 0;
+  corB = 0;
+  rotacao = 0;
+  diametro = 50;
+}
+
+void draw() {
+  background(255);  // Limpa a tela a cada quadro
+  
+  // Calcula a distância entre a posição atual e a posição anterior do mouse
+  float distancia = dist(mouseX, mouseY, pmouseX, pmouseY);
+  
+  // Apenas atualiza as transformações se o mouse estiver em movimento significativo
+  if (distancia > 1.0) {
+    // Atualiza a posição e outros atributos com base na posição do mouse
+    posX = mouseX;
+    posY = mouseY;
+    escala = map(mouseX, 0, width, 0.5, 2.0);  // Mapeia a escala conforme o movimento horizontal do mouse
+    corR = map(mouseX, 0, width, 0, 255);      // Mapeia a cor vermelha
+    corB = map(mouseY, 0, height, 0, 255);     // Mapeia a cor azul
+    rotacao = atan2(mouseY - height/2, mouseX - width/2); // Rotação em direção ao centro da tela
+    diametro = map(sin(frameCount * 0.1), -1, 1, 30, 70); // Animação de tamanho com o tempo
+  }
+  
+  // Define a cor do objeto
+  fill(corR, corG, corB);
+  
+  // Aplica transformações de acordo com o mouse
+  translate(posX, posY);
+  rotate(rotacao);
+  scale(escala);
+  
+  // Desenha o objeto (por exemplo, um círculo)
+  ellipse(0, 0, diametro, diametro);  // Um círculo no centro
+  
+  // Adiciona uma interação adicional com base na posição vertical do mouse
+  if (mouseY < height/2) {
+    // Se o mouse estiver acima do centro da tela
+    fill(0, 255, 0);  // Define a cor verde
+    rect(-20, -20, 40, 40);  // Desenha um retângulo verde
+  } else {
+    // Se o mouse estiver abaixo do centro da tela
+    fill(0, 0, 255);  // Define a cor azul
+    rect(-20, -20, 40, 40);  // Desenha um retângulo azul
+  }
+  
+  // Reinicia a transformação para o próximo desenho
+  resetMatrix();
+}
