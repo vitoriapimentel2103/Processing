@@ -1,0 +1,54 @@
+PImage[] images = new PImage[12]; // Array para armazenar as imagens
+int currentImageIndex = 0; // Índice para rastrear a imagem atual
+int frameCounter = 0; // Contador de frames
+int transitionInterval = 20; // Intervalo de transição em frames (20 frames)
+
+float posX, posY; // Posição
+float lastMouseX, lastMouseY; // Últimas posições do mouse
+
+void setup() {
+  size(600, 400);   // Tamanho da janela
+  smooth();         // Suaviza as bordas dos objetos
+  
+  // Carrega as imagens
+  images[0] = loadImage("um.png");
+  images[1] = loadImage("dois.png");
+  images[2] = loadImage("tres.png");
+  images[3] = loadImage("quatro.png");
+  images[4] = loadImage("cinco.png");
+  images[5] = loadImage("seis.png");
+  images[6] = loadImage("sete.png");
+  images[7] = loadImage("oito.png");
+  images[8] = loadImage("nove.png");
+  images[9] = loadImage("dez.png");
+  images[10] = loadImage("onze.png");
+  images[11] = loadImage("doze.png");
+
+  // Inicialização das variáveis
+  posX = width / 2;
+  posY = height / 2;
+  lastMouseX = mouseX;
+  lastMouseY = mouseY;
+}
+
+void draw() {
+  background(255);  // Limpa a tela a cada quadro
+  
+  // Verifica se houve mudança na posição do mouse
+  if (mouseX != lastMouseX || mouseY != lastMouseY) {
+    // Atualiza a posição do mouse
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+    
+    // Atualiza o índice da imagem atual a cada transitionInterval frames
+    frameCounter++;
+    if (frameCounter >= transitionInterval) {
+      frameCounter = 0;
+      currentImageIndex = (currentImageIndex + 1) % images.length;
+    }
+  }
+  
+  // Desenha a imagem atual redimensionada na posição atual do mouse
+  imageMode(CENTER); // Define o modo de imagem para o centro
+  image(images[currentImageIndex], mouseX, mouseY, images[currentImageIndex].width * 0.75, images[currentImageIndex].height * 0.75); // Desenha a imagem redimensionada na posição atual do mouse
+}
