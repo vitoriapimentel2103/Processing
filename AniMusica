@@ -1,0 +1,216 @@
+PImage backgroundImage; // Imagem de fundo
+PImage[] images = new PImage[12]; // Array para armazenar as imagens dos passos de dança
+int currentImageIndex = 0; // Índice para rastrear a imagem atual dos passos de dança
+float transitionSpeed = 0.08; // Velocidade de transição entre as imagens (0.0 - 1.0)
+
+float posX, posY; // Posição dos passos de dança
+float lastMouseX, lastMouseY; // Últimas posições do mouse
+boolean mouseMoved = false; // Flag para verificar se o mouse está se movendo
+
+int startTime; // Tempo de início do cronômetro
+int timerDuration = 40000; // Duração do cronômetro em milissegundos (40 segundos)
+int score = 0; // Pontuação do jogador
+int scoreIncrementRate = 5; // Taxa de incremento da pontuação
+
+// Lista de partículas de confete
+ArrayList<Confetti> confettiList = new ArrayList<Confetti>();
+
+void setup() {
+  size(800, 600);   // Tamanho da janela
+  smooth();         // Suaviza as bordas dos objetos
+  
+  // Carrega a imagem de fundo
+  backgroundImage = loadImage("background.jpg");
+  if (backgroundImage == null) {
+    println("Erro: A imagem de fundo 'background.jpg' não pôde ser carregada.");
+    exit(); // Encerra o programa se a imagem de fundo não puder ser carregada
+  }
+  
+  // Lista de nomes das imagens dos passos de dança
+  String[] imageNames = {
+    "um.png", "dois.png", "tres.png", "quatro.png", "cinco.png", 
+    "seis.png", "sete.png", "oito.png", "coringa.png", "coringa2.png", "coringa3.png", "novo1.png"
+    // Novas imagens adicionadas aqui
+  };
+  
+  // Embaralha a lista de nomes de imagens, garantindo que os coringas estejam longe uns dos outros
+  imageNames = shuffleWithoutJokers(imageNames);
+  
+  // Carrega as imagens dos passos de dança
+  for (int i = 0; i < images.length; i++) {
+    images[i] = loadImage(imageNames[i]);
+    if (images[i] == null) {
+      println("Erro: A imagem '" + imageNames[i] + "' não pôde ser carregada. Verifique se a imagem está corrompida.");
+      exit(); // Encerra o programa se uma das imagens não puder ser carregada
+    }
+  }
+  
+  // Inicializa a posição inicial dos passos de dança
+  posX = width / 2;
+  posY = height / 2;
+  lastMouseX = mouseX;
+  lastMouseY = mouseY;
+  
+  // Inicializa o cronômetro
+  startTime = millis();
+}
+
+void draw() {
+  // Calcula o tempo restante
+  int elapsedTime = millis() - startTime;
+  int remainingTime = timerDuration - elapsedTime;
+  if (remainingTime < 0) {
+    remainingTime = 0;
+  }
+  
+  // Altera a cor de fundo com base na posição do mouse
+  float bgColor = map(mouseX, 0, width, 100, 255);
+  background(bgColor); // Define o fundo com base na posição do mouse
+  
+  // Desenha a imagem de fundo fixa
+  image(backgroundImage, 0, 0, width, height);
+  
+  // Verifica se o mouse está se movendo
+  if (mouseX != lastMouseX || mouseY != lastMouseY) {
+    mouseMoved = true;
+    transitionSpeed = 0.08; // Define a velocidade de transição quando o mouse está se movendo
+  } else {
+    mouseMoved = false;
+    transitionSpeed = 0.03; // Define uma velocidade de transição mais rápida quando o mouse está parado
+  }
+  
+  // Atualiza a posição dos passos de dança para seguir o mouse apenas quando ele está se movendo
+  if (mouseMoved) {
+    posX = lerp(posX, mouseX, transitionSpeed);
+    posY = lerp(posY, mouseY, transitionSpeed);
+  }
+  
+  // Atualiza o índice da próxima imagem com base na velocidade de transição, se o cronômetro não tiver expirado
+  if (remainingTime > 0 && frameCount % 10 == 0 && mouseMoved) { // Altera a imagem a cada 10 frames quando o mouse está se movendo
+    currentImageIndex = (currentImageIndex + 1) % images.length;
+  }
+  PImage currentImage = images[currentImageIndex];
+  
+  // Desenha a imagem atual dos passos de dança com transição suave
+  if (currentImage != null) { // Verifica se a imagem atual não está corrompida
+    float imageWidth = currentImage.width * 0.75;
+    float imageHeight = currentImage.height * 0.75;
+    image(currentImage, posX, posY, imageWidth, imageHeight);
+  }
+  
+  // Desenha o cronômetro na tela
+  fill(255); // Define a cor do texto como branco
+  textSize(32); // Define o tamanho do texto
+  textAlign(CENTER, TOP); // Alinha o texto ao centro, no topo
+  text("Tempo restante: " + nf(remainingTime / 1000, 2) + "s", width / 2, 10);
+  
+  // Atualiza a pontuação mais lentamente
+  if (frameCount % 30 == 0 && mouseMoved && remainingTime > 0) {
+    score += scoreIncrementRate; // Aumenta a pontuação
+  }
+  
+  // Desenha a pontuação na tela
+  textAlign(LEFT, TOP); // Alinha o texto à esquerda, no topo
+  text("Pontuação: " + score, 10, 10);
+  
+  // Atualiza as últimas posições do mouse
+  lastMouseX = mouseX;
+  lastMouseY = mouseY;
+  
+  // Quando o cronômetro expira, exibe uma mensagem e confete
+  if (remainingTime == 0) {
+    if (confettiList.isEmpty()) {
+      // Gera confete
+      for (int i = 0; i < 100; i++) {
+        confettiList.add(new Confetti());
+      }
+    }
+    fill(255, 0, 0); // Define a cor do texto como vermelho
+    textSize(48); // Define o tamanho do texto maior
+    textAlign(CENTER, CENTER); // Alinha o texto ao centro
+    text("Tempo Esgotado!", width / 2, height / 2);
+  }
+  
+  // Atualiza e desenha confetes
+  for (int i = confettiList.size() - 1; i >= 0; i--) {
+    Confetti confetti = confettiList.get(i);
+    confetti.update();
+    confetti.display();
+    if (confetti.isOffScreen()) {
+      confettiList.remove(i);
+    }
+  }
+}
+
+// Função para embaralhar um array, garantindo que os coringas estejam longe uns dos outros
+String[] shuffleWithoutJokers(String[] array) {
+  // Embaralha a lista de nomes de imagens
+  for (int i = array.length - 1; i > 0; i--) {
+    int index = int(random(i + 1));
+    String temp = array[index];
+    array[index] = array[i];
+    array[i] = temp;
+  }
+  
+  // Encontra os índices dos coringas
+  int joker1Index = indexOf(array, "coringa.png");
+  int joker2Index = indexOf(array, "coringa2.png");
+  int joker3Index = indexOf(array, "coringa3.png");
+  
+  // Garante que os coringas estejam longe uns dos outros
+  while (Math.abs(joker1Index - joker2Index) < 3 || Math.abs(joker1Index - joker3Index) < 3 || Math.abs(joker2Index - joker3Index) < 3) {
+    for (int i = array.length - 1; i > 0; i--) {
+      int index = int(random(i + 1));
+      String temp = array[index];
+      array[index] = array[i];
+      array[i] = temp;
+    }
+    joker1Index = indexOf(array, "coringa.png");
+    joker2Index = indexOf(array, "coringa2.png");
+    joker3Index = indexOf(array, "coringa3.png");
+  }
+  
+  return array;
+}
+
+// Função para encontrar o índice de um elemento em um array
+int indexOf(String[] array, String value) {
+  for (int i = 0; i < array.length; i++) {
+    if (array[i].equals(value)) {
+      return i;
+    }
+  }
+  return -1; // Retorna -1 se o valor não for encontrado
+}
+
+// Classe para representar confetes
+class Confetti {
+  float x, y; // Posição
+  float speedX, speedY; // Velocidade
+  int col; // Cor
+  float size; // Tamanho
+  
+  Confetti() {
+    x = random(width);
+    y = random(-height, 0);
+    speedX = random(-2, 2);
+    speedY = random(1, 5);
+    col = color(random(255), random(255), random(255));
+    size = random(5, 10);
+  }
+  
+  void update() {
+    x += speedX;
+    y += speedY;
+  }
+  
+  void display() {
+    fill(col);
+    noStroke();
+    ellipse(x, y, size, size);
+  }
+  
+  boolean isOffScreen() {
+    return y > height;
+  }
+}
